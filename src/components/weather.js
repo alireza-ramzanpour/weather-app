@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useState } from 'react'
 import "./weather.css"
 import search_icon from '../assets/images/search.png'
 import clear_icon from '../assets/images/clear.png'
@@ -9,10 +9,16 @@ import rain_icon from '../assets/images/rain.png'
 import snow_icon from '../assets/images/snow.png'
 import wind_icon from '../assets/images/wind.png'
 
+const api = {
+    key: "4ea8a9bc0049cc6ea4e5292b1cab2113",
+    base: "http://api.openweathermap.org/data/2.5/"
+}
+
 function Weather() {
 
-    const inputRef = useRef()
-    const [weatherData, setWeaderData] = useState(false)
+    const [search, setSearch] = useState("")
+    const [weather, setWeather] = useState(false)
+
     const allIcons = {
         "01d": clear_icon,
         "01n": clear_icon,
@@ -30,77 +36,43 @@ function Weather() {
         "013n": snow_icon,
     }
 
-    const search = async (city) => {
-
-        if (city == "") {
-            alert("Enter City Name")
-            return;
-        }
-
-        try {
-            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${import.meta.env.APP_ID}`
-
-            const response = await fetch(url)
-            const data = await response.json()
-
-            if (!response.ok) {
-                alert(data.message);
-                return;
-            }
-
-            console.log(data);
-            const icon = allIcons[data.weather[0].icon]
-
-            setWeaderData({
-                humidity: data.main.humidity,
-                windSpeed: data.wind.speed,
-                temperature: Math.floor(data.main.temp),
-                location: data.name,
-                icon: icon
+    const searchPressed = () => {
+        fetch(`${api.base}weather?q=${search}&units=metricAPPID=${api.key}`)
+            .then(res => res.json())
+            .then(result => {
+                setWeather(result)
             })
-
-        } catch (error) {
-            setWeaderData(false)
-            console.error("Error in fetching weather data")
-        }
     }
 
-    useEffect(() => {
-        search()
-    }, [])
-
     return (
-        <div className='weather'>
-            <div className='search-bar'>
-                <input type='text' ref={inputRef} placeholder='Search' />
-                <img src={search_icon} alt='' onClick={() => search(inputRef.current.value)} />
-            </div>
+        <>
+            <div className='weather'>
+                <div className='search-bar'>
+                    <input type='text' placeholder='Search...' onChange={(e) => setSearch(e.target.value)} />
+                    <img src={search_icon} alt='' onClick={() => searchPressed()} />
+                </div>
 
-            {weatherData ? <>
-
-                <img src={weatherData.icon} alt='weather-icon' className='weather-icon' />
-                <p className='temperature'>{weatherData.temperature}</p>
-                <p className='location'>{weatherData.location}</p>
+                <img src={weather.icon} alt='weather-icon' className='weather-icon' />
+                <p className='temperature'>{weather.main.temp}</p>
+                <p className='location'>{weather.name}</p>
                 <div className='weather-data'>
                     <div className='col'>
                         <img src={humidity_icon} alt='' />
                         <div>
-                            <p>{weatherData.humidity}</p>
+                            <p>{weather.main.humidity}</p>
                             <span>Humidity</span>
                         </div>
                     </div>
                     <div className='col'>
                         <img src={wind_icon} alt='' />
                         <div>
-                            <p>{weatherData.windSpeed}</p>
+                            <p>{weather.wind.speed}</p>
                             <span>Wind Speed</span>
                         </div>
                     </div>
                 </div>
-
-            </> : <></>}
-
-        </div>
+            </div>
+        </>
     )
 }
 
