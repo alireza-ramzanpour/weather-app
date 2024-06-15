@@ -8,16 +8,13 @@ import humidity_icon from '../assets/images/humidity.png'
 import rain_icon from '../assets/images/rain.png'
 import snow_icon from '../assets/images/snow.png'
 import wind_icon from '../assets/images/wind.png'
+import axios from 'axios'
 
-const api = {
-    key: "4ea8a9bc0049cc6ea4e5292b1cab2113",
-    base: "http://api.openweathermap.org/data/2.5/"
-}
 
 function Weather() {
 
-    const [search, setSearch] = useState("")
-    const [weather, setWeather] = useState(false)
+    const [weather, setWeather] = useState({})
+    const [location, setLocation] = useState("")
 
     const allIcons = {
         "01d": clear_icon,
@@ -25,7 +22,6 @@ function Weather() {
         "02d": cloud_icon,
         "02n": cloud_icon,
         "03d": cloud_icon,
-        "02n": cloud_icon,
         "04d": drizzle_icon,
         "04n": drizzle_icon,
         "09d": rain_icon,
@@ -36,37 +32,44 @@ function Weather() {
         "013n": snow_icon,
     }
 
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=4ea8a9bc0049cc6ea4e5292b1cab2113`
+
     const searchPressed = () => {
-        fetch(`${api.base}weather?q=${search}&units=metricAPPID=${api.key}`)
-            .then(res => res.json())
-            .then(result => {
-                setWeather(result)
-            })
+        axios.get(url).then((response) => {
+            setWeather(response.data)
+            console.log(response.data);
+        })
+        setLocation("")
     }
 
     return (
         <>
             <div className='weather'>
                 <div className='search-bar'>
-                    <input type='text' placeholder='Search...' onChange={(e) => setSearch(e.target.value)} />
-                    <img src={search_icon} alt='' onClick={() => searchPressed()} />
+                    <input
+                        type='text'
+                        value={location}
+                        placeholder='Search...'
+                        onChange={(e) => setLocation(e.target.value)}
+                    />
+                    <img src={search_icon} alt='search-icon' onClick={() => searchPressed()} />
                 </div>
 
-                <img src={weather.icon} alt='weather-icon' className='weather-icon' />
-                <p className='temperature'>{weather.main.temp}</p>
+                {weather.weather ? <img src={allIcons[weather.weather[0].icon]} alt='weather-icon' className='weather-icon' /> : null}
+                {weather.main ? <p className='temperature'>{weather.main.temp.toFixed()}</p> : null}
                 <p className='location'>{weather.name}</p>
                 <div className='weather-data'>
                     <div className='col'>
-                        <img src={humidity_icon} alt='' />
+                        <img src={humidity_icon} alt='humidity-icon' />
                         <div>
-                            <p>{weather.main.humidity}</p>
+                            {weather.main ? <p>{weather.main.humidity + " %"}</p> : null}
                             <span>Humidity</span>
                         </div>
                     </div>
                     <div className='col'>
-                        <img src={wind_icon} alt='' />
+                        <img src={wind_icon} alt='wind-icon' />
                         <div>
-                            <p>{weather.wind.speed}</p>
+                            {weather.wind ? <p>{weather.wind.speed + " Km/h"}</p> : null}
                             <span>Wind Speed</span>
                         </div>
                     </div>
